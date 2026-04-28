@@ -1,23 +1,37 @@
-FROM node:24-slim
+# ── Stage 1: build ──────────────────────────────────────────────────────────
+FROM node:24-slim AS builder
 
 WORKDIR /app
 
-# Install client deps and build
+# Client
 COPY client/package*.json ./client/
 RUN npm install --prefix client
 
 COPY client/ ./client/
 RUN npm run build --prefix client
 
-# Install server deps
+# Server (all deps including devDeps for tsc)
 COPY server/package*.json ./server/
-RUN npm install --prefix server --omit=dev
+RUN npm install --prefix server
 
 COPY server/ ./server/
 RUN npm run build --prefix server
 
-# Runtime
+# ── Stage 2: runtime ─────────────────────────────────────────────────────────
+FROM node:24-slim
+
 WORKDIR /app/server
+
+# Production deps only
+COPY server/package*.json ./
+RUN npm install --omit=dev
+
+# Compiled server
+COPY --from=builder /app/server/dist ./dist
+
+# Built client (served as static files by Express)
+COPY --from=builder /app/client/dist ../client/dist
+
 ENV NODE_ENV=production
 ENV PORT=3001
 

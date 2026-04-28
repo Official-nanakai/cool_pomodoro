@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-950 text-gray-100 font-['Inter',sans-serif] antialiased;
+  }
+}
+
+@layer utilities {
+  .timer-font {
+    font-family: 'JetBrains Mono', 'Fira Mono', monospace;
+  }
+}
